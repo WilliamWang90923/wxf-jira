@@ -1,6 +1,6 @@
 import { List, Project } from "./list"
 import { SearchPanel } from "./search-panel"
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import { cleanObject, useDebounce, useDocumentTitle, useMount } from "utils"
 import { useHttp } from "utils/http"
 import styled from "@emotion/styled"
@@ -17,7 +17,8 @@ export const ProjectListScreen = () => {
     // });
     
     const [param, setParam] = useUrlQueryParam(['name', 'personId'])
-    const projectsParam = {...param, personId: Number(param.personId) || undefined}
+    // const projectsParam = {...param, personId: Number(param.personId) || undefined}
+    const projectsParam = useMemo(() => ({...param, personId: Number(param.personId) || undefined}), [param])
     const debounceParam = useDebounce(projectsParam, 200)
     const {isLoading, error, data: list} = useProject(debounceParam)
     const { data: users } = useUsers()
@@ -27,7 +28,7 @@ export const ProjectListScreen = () => {
     
     return <Container>
         <h1>Project List</h1>
-        <SearchPanel users={users || []} param={param} setParam={setParam}/>
+        <SearchPanel users={users || []} param={debounceParam} setParam={setParam}/>
         {error ? <Typography.Text type="danger">{error.message}</Typography.Text> : null}
         <List users={users || []} dataSource={list || []} loading={isLoading}/>
     </Container>
