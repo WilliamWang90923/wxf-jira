@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
 interface State<D> {
     error: Error | null;
@@ -34,11 +34,15 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
         stat: 'error',
         data: null
     })
+    let savedPromiseFunc: (() => Promise<D>) 
     // trigger async request
-    const run = (promise: Promise<D>) => {
+    const run = (promise: Promise<D>, runConfig?: () => Promise<D> ) => {
         if (!promise || !promise.then) {
             throw new Error('please pass Promise type data!')
         } 
+        if (runConfig) {
+            savedPromiseFunc = runConfig
+        }
         setState({...state, stat: 'loading'})
         return promise.then(data => {
             setData(data)
@@ -51,6 +55,8 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
             return err
         })
     }
+    const retry = useCallback(() => run(savedPromiseFunc()) ,[]);
+
 
     return {
         isIdle: state.stat === 'idle',
@@ -60,6 +66,8 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
         run,
         setData,
         setError,
+        // when called, call run() again
+        retry,
         ...state
     }
 }
