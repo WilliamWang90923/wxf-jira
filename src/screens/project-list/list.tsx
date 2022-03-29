@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import { Table } from 'antd';
+import { Button, Dropdown, Menu, Table } from 'antd';
 import { TableProps } from 'antd/es/table';
 import { StarRate } from 'components/star-rate';
 import dayjs from 'dayjs';
@@ -20,6 +20,7 @@ export interface Project {
 interface ListProps extends TableProps<Project> {
     users: User[];
     refresh?: () => void;
+    projectButton: JSX.Element;
 }
 
 export const List = ({users, ...props}: ListProps) => {
@@ -67,8 +68,23 @@ export const List = ({users, ...props}: ListProps) => {
                         </span>
                     )
                 }
-        }]
-    } 
+            },
+            {
+                render: (value, project) => {
+                    return (
+                        <Dropdown overlay={
+                            <Menu>
+                                <Menu.Item key={'edit'}>
+                                    {props.projectButton}
+                                </Menu.Item>
+                            </Menu>
+                        }>
+                            <Button style={{padding: 0}} type={"link"}>...</Button>
+                        </Dropdown>
+                    )
+                }
+            }
+    ]} 
     {...props}
     />
     

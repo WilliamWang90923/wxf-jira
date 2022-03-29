@@ -1,3 +1,4 @@
+import { useMountedRef } from './index';
 import { useState, useCallback } from 'react'
 
 interface State<D> {
@@ -23,29 +24,35 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
         ...defaultInitialState,
         ...initialState
     });
-    const setData = (data: D) => setState({
+
+    const mountedRef = useMountedRef()
+    const setData = useCallback( (data: D) => setState({
         data,
         stat: 'success',
         error: null
-    })
+    }), [])
 
-    const setError = (error: Error) => setState({
+    const setError = useCallback((error: Error) => setState({
         error,
         stat: 'error',
         data: null
-    })
+    }), [])
+    
     let savedPromiseFunc: (() => Promise<D>) 
     // trigger async request
-    const run = (promise: Promise<D>, runConfig?: () => Promise<D> ) => {
+    const run = useCallback((promise: Promise<D>, runConfig?: () => Promise<D> ) => {
+
         if (!promise || !promise.then) {
             throw new Error('please pass Promise type data!')
         } 
         if (runConfig) {
             savedPromiseFunc = runConfig
         }
-        setState({...state, stat: 'loading'})
+        setState(prevState => ({...prevState, stat: 'loading'}))
         return promise.then(data => {
-            setData(data)
+            if (mountedRef.current) {
+                setData(data)
+            }
             return data
         }).catch(err => {
             setError(err)
@@ -54,9 +61,9 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
             }
             return err
         })
-    }
-    const retry = useCallback(() => run(savedPromiseFunc()) ,[]);
+    }, [setData, setError, mountedRef, config.throwOnError])
 
+    const retry = useCallback(() => run(savedPromiseFunc()) ,[]);
 
     return {
         isIdle: state.stat === 'idle',

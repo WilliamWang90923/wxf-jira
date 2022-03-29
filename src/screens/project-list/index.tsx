@@ -3,13 +3,16 @@ import { SearchPanel } from "./search-panel"
 import {useMemo} from 'react'
 import { useDebounce, useDocumentTitle, useMount } from "utils"
 import styled from "@emotion/styled"
-import { Button, Typography } from "antd"
+import { Button, Row, Typography } from "antd"
 import { useAsync } from "utils/use-async"
 import { useProject } from "utils/project"
 import { useUsers } from "utils/user"
 import { useUrlQueryParam } from "utils/url"
 
-export const ProjectListScreen = () => {
+export const ProjectListScreen = (props: {
+
+        projectButton: JSX.Element
+    }) => {
     // const [_, setParam] = useState({
     //     name: '',
     //     personId: ''
@@ -27,12 +30,21 @@ export const ProjectListScreen = () => {
     // console.log(useUrlQueryParam(['name']))
     console.log("render")
     
-    return <Container>
-        <h1>Project List</h1>
-        <SearchPanel users={users || []} param={debounceParam} setParam={setParam}/>
-        {error ? <Typography.Text type="danger">{error.message}</Typography.Text> : null}
-        <List refresh={retry} users={users || []} dataSource={list || []} loading={isLoading}/>
-    </Container>
+    return (
+        <Container>
+            <Row>
+                <h1>Project List</h1>
+                {props.projectButton}
+            </Row>
+            <SearchPanel users={users || []} param={debounceParam} setParam={setParam}/>
+            {error ? <Typography.Text type="danger">{error.message}</Typography.Text> : null}
+            <List 
+                refresh={retry} users={users || []} 
+                dataSource={list || []} loading={isLoading}
+                projectButton = {props.projectButton}
+            />
+        </Container>
+    )
 }
 
 const Container = styled.div`
